@@ -1,0 +1,8 @@
+.svelte-kit
+node_modules
+.vscode
+.storybook
+e2e
+.git
+*.log
+.env*

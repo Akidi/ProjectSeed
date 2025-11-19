@@ -1,0 +1,4 @@
+user default off nopass ~* &* -@all
+user {{REDIS_ADMIN_USER}} on >{{REDIS_ADMIN_PASSWORD}} allcommands allkeys
+user {{REDIS_API_USER}} on >{{REDIS_API_PASSWORD}} +@read +@write ~api:* ~session:* -@dangerous
+user {{REDIS_READONLY_USER}} on >{{REDIS_READONLY_PASSWORD}} +@read ~*
