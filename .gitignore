@@ -1,0 +1,12 @@
+# Environment files
+/.env*
+/infrastructure/postgres/*
+!/infrastructure/postgres/.gitkeep
+/infrastructure/redis/*
+!/infrastructure/redis/.gitkeep
+
+# Node build caches
+.pnpm-store
+node_modules
+.DS_Store
+Thumbs.db

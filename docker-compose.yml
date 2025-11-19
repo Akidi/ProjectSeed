@@ -1,0 +1,226 @@
+x-app-env: &default-app-env
+  DATABASE_URL: postgres://${POSTGRES_APP_USER}:${POSTGRES_APP_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  DIRECT_DATABASE_URL: postgres://${POSTGRES_SUPERUSER}:${POSTGRES_SUPERUSER_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  REDIS_URL: redis://redis:6379
+  REDIS_USERNAME: ${REDIS_API_USER}
+  REDIS_PASSWORD: ${REDIS_API_PASSWORD}
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+      POSTGRES_INITDB_ARGS: ${POSTGRES_INITDB_ARGS}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SUPERUSER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ${POSTGRES_DATA_VOLUME:-projectseed_postgres}:/var/lib/postgresql/data
+      - ${POSTGRES_INIT_PATH:-./infrastructure/postgres/dev}:/docker-entrypoint-initdb.d:ro
+    networks:
+      services:
+        aliases:
+          - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: ${POSTGRES_CPU_LIMIT:-1.0}
+          memory: ${POSTGRES_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${POSTGRES_CPU_RESERVATION:-0.25}
+          memory: ${POSTGRES_MEMORY_RESERVATION:-512M}
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:7.2-alpine}
+    command:
+      - sh
+      - -c
+      - |
+        if command -v sysctl >/dev/null 2>&1; then
+          sysctl vm.overcommit_memory=1 >/dev/null 2>&1 || true
+        else
+          echo 1 > /proc/sys/vm/overcommit_memory 2>/dev/null || true
+        fi
+        exec redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "redis-cli --user ${REDIS_ADMIN_USER} --pass ${REDIS_ADMIN_PASSWORD} PING | grep PONG",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ${REDIS_DATA_VOLUME:-projectseed_redis}:/data
+      - ${REDIS_CONFIG_PATH:-./infrastructure/redis/dev}/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ${REDIS_CONFIG_PATH:-./infrastructure/redis/dev}/users.acl:/usr/local/etc/redis/users.acl:ro
+      - ${REDIS_CONFIG_PATH:-./infrastructure/redis/dev}/network.conf:/usr/local/etc/redis/network.conf:ro
+    networks:
+      services:
+        aliases:
+          - redis
+        ipv4_address: ${NETWORK_REDIS_IP}
+    deploy:
+      resources:
+        limits:
+          cpus: ${REDIS_CPU_LIMIT:-0.5}
+          memory: ${REDIS_MEMORY_LIMIT:-512M}
+        reservations:
+          cpus: ${REDIS_CPU_RESERVATION:-0.25}
+          memory: ${REDIS_MEMORY_RESERVATION:-256M}
+
+  app-dev:
+    profiles: ["dev"]
+    build:
+      context: ./app
+      target: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    init: true
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    command: ["pnpm", "dev", "--host", "0.0.0.0", "--port", "${APP_DEV_PORT:-5173}"]
+    environment:
+      <<: *default-app-env
+      NODE_ENV: development
+      PORT: ${APP_DEV_PORT:-5173}
+      VITE_PUBLIC_ORIGIN: ${PUBLIC_ORIGIN}
+    ports:
+      - "${APP_DEV_PORT:-5173}:${APP_DEV_PORT:-5173}"
+    volumes:
+      - ./app:/app
+      - app_dev_node_modules:/app/node_modules
+    networks:
+      services:
+        aliases:
+          - app-dev
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:${APP_DEV_PORT:-5173}/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: ${APP_DEV_CPU_LIMIT:-1.0}
+          memory: ${APP_DEV_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${APP_DEV_CPU_RESERVATION:-0.25}
+          memory: ${APP_DEV_MEMORY_RESERVATION:-512M}
+
+  app-prod:
+    profiles: ["prod", "staging"]
+    build:
+      context: ./app
+      target: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    init: true
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    environment:
+      <<: *default-app-env
+      NODE_ENV: production
+      PORT: ${APP_PROD_PORT:-4173}
+      VITE_PUBLIC_ORIGIN: ${PUBLIC_ORIGIN}
+    expose:
+      - "${APP_PROD_PORT:-4173}"
+    networks:
+      services:
+        aliases:
+          - app-prod
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:${APP_PROD_PORT:-4173}/health || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: ${APP_PROD_CPU_LIMIT:-1.0}
+          memory: ${APP_PROD_MEMORY_LIMIT:-1G}
+        reservations:
+          cpus: ${APP_PROD_CPU_RESERVATION:-0.25}
+          memory: ${APP_PROD_MEMORY_RESERVATION:-512M}
+
+volumes:
+  app_dev_node_modules:
+  projectseed_postgres:
+    external: false
+  projectseed_redis:
+    external: false
+
+networks:
+  services:
+    driver: bridge
+    name: ${SERVICES_NETWORK_NAME:-projectseed_services}
+    attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SERVICES_SUBNET}
+          gateway: ${SERVICES_GATEWAY}
