@@ -13,8 +13,8 @@
 
 	let {
 		as = 'div',
-		gap = '1rem',
-		minItemWidth = '18rem',
+		gap = 'var(--space-4, 1rem)',
+		minItemWidth = 'var(--tile-min-width, 18rem)',
 		class: className = '',
 		style = '',
 		children,

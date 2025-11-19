@@ -14,7 +14,7 @@
 
 	let {
 		as = 'div',
-		gap = '1rem',
+		gap = 'var(--space-3, 0.75rem)',
 		align = 'center',
 		justify = 'flex-start',
 		class: className = '',

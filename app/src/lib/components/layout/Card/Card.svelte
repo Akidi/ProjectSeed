@@ -16,11 +16,11 @@
 
 	let {
 		as = 'article',
-		padding = '1rem',
-		radius = '0.75rem',
-		border = '1px solid color-mix(in srgb, currentColor 20%, transparent)',
+		padding = 'var(--space-4, 1rem)',
+		radius = 'var(--radius-lg, 0.75rem)',
+		border = '1px solid var(--color-border, color-mix(in srgb, currentColor 20%, transparent))',
 		shadow = '',
-		background = 'color-mix(in srgb, var(--storybook-background, #111) 70%, #000)',
+		background = 'var(--color-surface-2, color-mix(in srgb, var(--storybook-background, #111) 70%, #000))',
 		class: className = '',
 		style = '',
 		children,

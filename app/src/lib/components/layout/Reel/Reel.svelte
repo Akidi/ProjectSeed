@@ -14,8 +14,8 @@
 
 	let {
 		as = 'div',
-		gap = '1rem',
-		itemWidth = '16rem',
+		gap = 'var(--space-4, 1rem)',
+		itemWidth = 'var(--tile-min-width, 16rem)',
 		snap = true,
 		class: className = '',
 		style = '',

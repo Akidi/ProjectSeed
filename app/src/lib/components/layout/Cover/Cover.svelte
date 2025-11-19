@@ -16,9 +16,9 @@
 
 	let {
 		as = 'section',
-		minHeight = '100vh',
-		padding = '2rem',
-		gap = '1.5rem',
+		minHeight = 'var(--cover-height, 100vh)',
+		padding = 'var(--space-7, 2rem)',
+		gap = 'var(--space-5, 1.5rem)',
 		align = 'center',
 		justify = 'center',
 		class: className = '',

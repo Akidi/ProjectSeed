@@ -15,10 +15,10 @@
 
 	let {
 		as = 'div',
-		gap = '1rem',
+		gap = 'var(--space-4, 1rem)',
 		align = 'stretch',
 		justify = 'flex-start',
-		maxWidth,
+		maxWidth = 'var(--content-width, 70ch)',
 		class: className = '',
 		style = '',
 		children,

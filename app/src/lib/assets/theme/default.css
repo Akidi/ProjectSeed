@@ -1,0 +1,35 @@
+:root {
+	color-scheme: light;
+	--color-surface-1: oklch(0.98 0.02 95);
+	--color-surface-2: oklch(0.94 0.02 95);
+	--color-text: oklch(0.22 0.02 250);
+	--color-muted: oklch(0.55 0.03 250);
+	--color-border: oklch(0.88 0.02 95);
+	--color-accent: oklch(0.62 0.16 262);
+	--color-accent-contrast: oklch(0.18 0.02 250);
+	--shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme='dim'] {
+	color-scheme: dark;
+	--color-surface-1: oklch(0.27 0.03 255);
+	--color-surface-2: oklch(0.32 0.03 255);
+	--color-text: oklch(0.94 0.02 255);
+	--color-muted: oklch(0.72 0.04 255);
+	--color-border: oklch(0.38 0.03 255);
+	--color-accent: oklch(0.7 0.14 262);
+	--color-accent-contrast: oklch(0.18 0.02 250);
+	--shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--color-surface-1: oklch(0.18 0.03 255);
+	--color-surface-2: oklch(0.23 0.03 255);
+	--color-text: oklch(0.95 0.02 255);
+	--color-muted: oklch(0.78 0.04 255);
+	--color-border: oklch(0.32 0.03 255);
+	--color-accent: oklch(0.75 0.14 262);
+	--color-accent-contrast: oklch(0.18 0.02 250);
+	--shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.3);
+}

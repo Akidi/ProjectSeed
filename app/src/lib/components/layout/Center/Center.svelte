@@ -14,8 +14,8 @@
 
 	let {
 		as = 'div',
-		maxWidth = '65ch',
-		gutter = '1rem',
+		maxWidth = 'var(--content-width, 70ch)',
+		gutter = 'var(--space-5, 1.25rem)',
 		intrinsic = false,
 		class: className = '',
 		style = '',

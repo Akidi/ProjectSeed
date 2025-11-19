@@ -18,10 +18,10 @@
 
 	let {
 		as = 'section',
-		gap = '1rem',
+		gap = 'var(--space-4, 1rem)',
 		align = 'flex-start',
 		side = 'left',
-		sidebarWidth = '18rem',
+		sidebarWidth = 'var(--sidebar-width, 18rem)',
 		contentMin = '22rem',
 		class: className = '',
 		style = '',

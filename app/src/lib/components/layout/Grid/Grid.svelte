@@ -14,8 +14,8 @@
 
 	let {
 		as = 'div',
-		gap = '1rem',
-		minItemWidth = '16rem',
+		gap = 'var(--space-4, 1rem)',
+		minItemWidth = 'var(--tile-min-width, 16rem)',
 		align = 'stretch',
 		class: className = '',
 		style = '',
